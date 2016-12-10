@@ -17,17 +17,19 @@ class Character {
 
   // キャラ描写
   draw() {
-    this.ctx.drawImage(this.img, this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
+    this.ctx.drawImage(this.img, this.x - this.w/2, this.y - this.h/2, this.w, this.h);
   }
 
   // 自分の周りをクリア（再描写のため)
   clear() {
-    this.ctx.clearRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
+    this.ctx.clearRect(this.x - this.w/2, this.y - this.h/2, this.w, this.h);
   }
 
   // Hit時
   isHit(target) {
-    if (Math.abs(this.x - target.x) < this.w / 2 + target.w / 2 && Math.abs(this.y - target.y) < this.h / 2 + target.h / 2) {
+    if (Math.abs(this.x - target.x) < this.w/2 + target.w/2
+      && Math.abs(this.y - target.y) < this.h/2 + target.h/2
+    ) {
       console.log("hit");
     }
   }
@@ -37,16 +39,16 @@ class Player extends Character {
   // キーに合わせて移動
   move(keycode) {
     this.clear();
-    let direction = "";
+    let direction = ""
     switch (keycode) {
-      case 37:
-        direction = "left";
-        this.x -= 5;
-        break;
-      case 39:
-        direction = "right";
-        this.x += 5;
-        break;
+    case 37:
+      direction = "left";
+      this.x -= 5;
+      break;
+    case 39:
+      direction = "right";
+      this.x += 5;
+      break;
     }
     this.draw();
     this.ctx.fill();
@@ -58,9 +60,9 @@ class Enemy extends Character {
     this.clear();
     // var rnd = Math.round(Math.random());
     // if (rnd == 0) {
-    this.x -= 2;
+      this.x -= 2;
     // } else {
-    // this.x += 2;
+      // this.x += 2;
     // }
     this.draw();
     this.ctx.fill();
@@ -87,13 +89,13 @@ var init = () => {
 
     // Player
     const img = new Image();
-    img.src = "img/c.jpg";
-    const player = new Player(ctx, img, 50, 300 - charH / 2);
+    img.src = "img/c.jpg"
+    const player = new Player(ctx, img, 50, 300 - charH/2);
     player.draw();
 
     // Enemy
     const img2 = new Image();
-    img2.src = "img/b.png";
+    img2.src = "img/b.png"
 
     let enemies = [];
 
@@ -102,35 +104,34 @@ var init = () => {
     ctx.fill();
 
     // 敵が一定間隔ごとに動く
-    setInterval(() => {
-      tick(enemies, player);
-    }, 500);
+    setInterval( () =>{ tick(enemies, player) }, 500 );
 
     // キーボード押時
-    document.body.onkeydown = e => {
+    document.body.onkeydown = (e) => {
       player.move(e.keyCode);
-      enemies.forEach((enemy, index) => {
+      enemies.forEach( (enemy, index) => {
         player.isHit(enemy);
-      });
-    };
+      } );
+    }
   }
-};
+}
+
+var appendNewBlock = (blocks, ctx) => {
+}
 
 var appendNewEnemy = (enemies, ctx, img) => {
   // ステージ1/3以降にランダムに作成
-  var minX = stageW * 1 / 3;
+  var minX = stageW * 1/3
   var rndX = Math.round(Math.random() * (stageW + 1 - minX)) + minX;
-  const enemy = new Enemy(ctx, img, rndX, 300 - charH / 2);
+  const enemy = new Enemy(ctx, img, rndX, 300 - charH/2);
   enemies.push(enemy);
   enemy.draw();
-  setTimeout(() => {
-    appendNewEnemy(enemies, ctx, img);
-  }, 1000);
-};
+  setTimeout( () => { appendNewEnemy(enemies, ctx, img) }, 1000 );
+}
 
 var tick = (characteres, target) => {
-  characteres.forEach((character, index) => {
+  characteres.forEach( (character, index) => {
     character.move();
     character.isHit(target);
-  });
-};
+  } );
+}
