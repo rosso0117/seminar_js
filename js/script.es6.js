@@ -4,6 +4,7 @@ const stageW = 700;
 const stageH = 500;
 const charW = 50;
 const charH = 50;
+const charStartY = 300 - charH / 2;
 
 class Character {
   constructor(ctx, img, x, y) {
@@ -13,6 +14,7 @@ class Character {
     this.y = y;
     this.w = charW;
     this.h = charH;
+    this.isFall = false;
   }
 
   // キャラ描写
@@ -27,10 +29,11 @@ class Character {
 
   // Hit時
   isHit(target) {
-    if (Math.abs(this.x - target.x) < this.w/2 + target.w/2
+    if ( Math.abs(this.x - target.x) < this.w/2 + target.w/2
       && Math.abs(this.y - target.y) < this.h/2 + target.h/2
     ) {
       console.log("hit");
+      return true;
     }
   }
 }
@@ -52,6 +55,45 @@ class Player extends Character {
     }
     this.draw();
     this.ctx.fill();
+  }
+
+  jump(keycode, onTop) {
+    const top = charStartY - 80;
+
+    if (this.y <= top) {
+      onTop = true;
+    }
+
+    // 最高到達点より前にspaceキーを話せばその時点で落ちる(isFall)
+    if (keycode != 32 || onTop || this.isFall) {
+      return;
+    }
+    this.clear();
+    this.y -= 4;
+    this.draw();
+    this.ctx.fill();
+
+    setTimeout( () => { this.jump(keycode, onTop) }, 10 );
+  }
+
+  fall(keycode, onGround) {
+    const ground = charStartY;
+    if (this.y >= ground) {
+      onGround = true;
+      this.isFall = false;
+    }
+
+    if (keycode != 32 || onGround) {
+      return;
+    }
+
+    this.clear();
+    this.y += 4;
+    this.isFall = true;
+    this.draw();
+    this.ctx.fill();
+
+    setTimeout( () => { this.fall(keycode, onGround) }, 10 );
   }
 }
 
@@ -109,9 +151,14 @@ var init = () => {
     // キーボード押時
     document.body.onkeydown = (e) => {
       player.move(e.keyCode);
+      player.jump(e.keyCode, false);
       enemies.forEach( (enemy, index) => {
         player.isHit(enemy);
       } );
+    }
+
+    document.body.onkeyup = (e) => {
+      player.fall(e.keyCode, false);
     }
   }
 }
@@ -131,9 +178,15 @@ var appendNewEnemy = (enemies, ctx, img) => {
   setTimeout( () => { appendNewEnemy(enemies, ctx, img) }, 1000 );
 }
 
-var tick = (characteres, target) => {
-  characteres.forEach( (character, index) => {
-    character.move();
-    character.isHit(target);
+var tick = (enemies, player) => {
+  enemies.forEach( (enemy, index) => {
+    enemy.move();
+    const isHit = enemy.isHit(player);
+
+    // 衝突したキャラクターを削除
+    if (isHit) {
+      enemies.splice(index, 1);
+      enemy.clear(); // 跡が残るので消す
+    }
   } );
 }

@@ -4,6 +4,7 @@ const stageW = 700;
 const stageH = 500;
 const charW = 50;
 const charH = 50;
+const charStartY = 300 - charH / 2;
 
 class Character {
   constructor(ctx, img, x, y) {
@@ -13,6 +14,8 @@ class Character {
     this.y = y;
     this.w = charW;
     this.h = charH;
+    this.isJump = false;
+    this.isFall = false;
   }
 
   // キャラ描写
@@ -29,6 +32,7 @@ class Character {
   isHit(target) {
     if (Math.abs(this.x - target.x) < this.w / 2 + target.w / 2 && Math.abs(this.y - target.y) < this.h / 2 + target.h / 2) {
       console.log("hit");
+      return true;
     }
   }
 }
@@ -50,6 +54,50 @@ class Player extends Character {
     }
     this.draw();
     this.ctx.fill();
+  }
+
+  jump(keycode, onTop) {
+    const top = charStartY - 80;
+
+    if (this.y <= top) {
+      onTop = true;
+      this.isJump = false;
+    }
+
+    if (keycode != 32 || onTop || this.isFall) {
+      return;
+    }
+    this.clear();
+    this.y -= 4;
+    this.isJump = true;
+    this.draw();
+    this.ctx.fill();
+
+    setTimeout(() => {
+      this.jump(keycode, onTop);
+    }, 10);
+  }
+
+  fall(keycode, onGround) {
+    const ground = charStartY;
+    if (this.y >= ground) {
+      onGround = true;
+      this.isFall = false;
+    }
+
+    if (keycode != 32 || onGround) {
+      return;
+    }
+
+    this.clear();
+    this.y += 4;
+    this.isFall = true;
+    this.draw();
+    this.ctx.fill();
+
+    setTimeout(() => {
+      this.fall(keycode, onGround);
+    }, 10);
   }
 }
 
@@ -104,33 +152,48 @@ var init = () => {
     // 敵が一定間隔ごとに動く
     setInterval(() => {
       tick(enemies, player);
-    }, 500);
+    }, 1000);
 
     // キーボード押時
     document.body.onkeydown = e => {
       player.move(e.keyCode);
+      player.jump(e.keyCode, false);
       enemies.forEach((enemy, index) => {
         player.isHit(enemy);
       });
     };
+
+    document.body.onkeyup = e => {
+      player.fall(e.keyCode, false);
+    };
   }
 };
 
+var appendNewBlock = (blocks, ctx) => {};
+
 var appendNewEnemy = (enemies, ctx, img) => {
   // ステージ1/3以降にランダムに作成
-  var minX = stageW * 1 / 3;
-  var rndX = Math.round(Math.random() * (stageW + 1 - minX)) + minX;
+  const minX = stageW * 1 / 3;
+  const rndX = Math.round(Math.random() * (stageW + 1 - minX)) + minX;
+
   const enemy = new Enemy(ctx, img, rndX, 300 - charH / 2);
   enemies.push(enemy);
   enemy.draw();
+
   setTimeout(() => {
     appendNewEnemy(enemies, ctx, img);
   }, 1000);
 };
 
-var tick = (characteres, target) => {
-  characteres.forEach((character, index) => {
-    character.move();
-    character.isHit(target);
+var tick = (enemies, player) => {
+  enemies.forEach((enemy, index) => {
+    enemy.move();
+    const isHit = enemy.isHit(player);
+
+    // 衝突したキャラクターを削除
+    if (isHit) {
+      enemies.splice(index, 1);
+      enemy.clear(); // 跡が残るので消す
+    }
   });
 };
