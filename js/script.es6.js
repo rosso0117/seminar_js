@@ -121,11 +121,13 @@ var appendNewBlock = (blocks, ctx) => {
 
 var appendNewEnemy = (enemies, ctx, img) => {
   // ステージ1/3以降にランダムに作成
-  var minX = stageW * 1/3
-  var rndX = Math.round(Math.random() * (stageW + 1 - minX)) + minX;
+  const minX = stageW * 1/3
+  const rndX = Math.round(Math.random() * (stageW + 1 - minX)) + minX;
+
   const enemy = new Enemy(ctx, img, rndX, 300 - charH/2);
   enemies.push(enemy);
   enemy.draw();
+
   setTimeout( () => { appendNewEnemy(enemies, ctx, img) }, 1000 );
 }
 
