@@ -104,7 +104,7 @@ var init = () => {
     ctx.fill();
 
     // 敵が一定間隔ごとに動く
-    setInterval( () =>{ tick(enemies, player) }, 500 );
+    setInterval( () =>{ tick(enemies, player) }, 1000 );
 
     // キーボード押時
     document.body.onkeydown = (e) => {
