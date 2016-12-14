@@ -42,14 +42,11 @@ class Player extends Character {
   // キーに合わせて移動
   move(keycode) {
     this.clear();
-    let direction = ""
     switch (keycode) {
     case 37:
-      direction = "left";
       this.x -= 5;
       break;
     case 39:
-      direction = "right";
       this.x += 5;
       break;
     }
@@ -58,6 +55,7 @@ class Player extends Character {
   }
 
   jump(keycode, onTop) {
+    // ジャンプの最高到達点
     const top = charStartY - 80;
 
     if (this.y <= top) {
@@ -77,8 +75,7 @@ class Player extends Character {
   }
 
   fall(keycode, onGround) {
-    const ground = charStartY;
-    if (this.y >= ground) {
+    if (this.y >= charStartY) {
       onGround = true;
       this.isFall = false;
     }
@@ -132,21 +129,19 @@ var init = () => {
     // Player
     const img = new Image();
     img.src = "img/c.jpg"
-    const player = new Player(ctx, img, 50, 300 - charH/2);
+    const player = new Player(ctx, img, 50, charStartY);
     player.draw();
 
     // Enemy
+    let enemies = [];
     const img2 = new Image();
     img2.src = "img/b.png"
-
-    let enemies = [];
-
     appendNewEnemy(enemies, ctx, img2);
 
     ctx.fill();
 
     // 敵が一定間隔ごとに動く
-    setInterval( () =>{ tick(enemies, player) }, 1000 );
+    setInterval( () => { tick(enemies, player) }, 1000 );
 
     // キーボード押時
     document.body.onkeydown = (e) => {
@@ -163,15 +158,15 @@ var init = () => {
   }
 }
 
-var appendNewBlock = (blocks, ctx) => {
-}
+// var appendNewBlock = (blocks, ctx) => {
+// }
 
 var appendNewEnemy = (enemies, ctx, img) => {
   // ステージ1/3以降にランダムに作成
   const minX = stageW * 1/3
-  const rndX = Math.round(Math.random() * (stageW + 1 - minX)) + minX;
+  const rndX = Math.round( Math.random() * (stageW + 1 - minX) ) + minX;
 
-  const enemy = new Enemy(ctx, img, rndX, 300 - charH/2);
+  const enemy = new Enemy(ctx, img, rndX, charStartY);
   enemies.push(enemy);
   enemy.draw();
 
@@ -187,6 +182,7 @@ var tick = (enemies, player) => {
     if (isHit) {
       enemies.splice(index, 1);
       enemy.clear(); // 跡が残るので消す
+      player.draw();
     }
   } );
 }

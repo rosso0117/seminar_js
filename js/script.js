@@ -1,199 +1,252 @@
 'use strict';
 
-const stageW = 700;
-const stageH = 500;
-const charW = 50;
-const charH = 50;
-const charStartY = 300 - charH / 2;
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-class Character {
-  constructor(ctx, img, x, y) {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var stageW = 700;
+var stageH = 500;
+var charW = 50;
+var charH = 50;
+var charStartY = 300 - charH / 2;
+
+var Character = function () {
+  function Character(ctx, img, x, y) {
+    _classCallCheck(this, Character);
+
     this.ctx = ctx;
     this.img = img;
     this.x = x;
     this.y = y;
     this.w = charW;
     this.h = charH;
-    this.isJump = false;
     this.isFall = false;
   }
 
   // キャラ描写
-  draw() {
-    this.ctx.drawImage(this.img, this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
-  }
 
-  // 自分の周りをクリア（再描写のため)
-  clear() {
-    this.ctx.clearRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
-  }
 
-  // Hit時
-  isHit(target) {
-    if (Math.abs(this.x - target.x) < this.w / 2 + target.w / 2 && Math.abs(this.y - target.y) < this.h / 2 + target.h / 2) {
-      console.log("hit");
-      return true;
-    }
-  }
-}
-
-class Player extends Character {
-  // キーに合わせて移動
-  move(keycode) {
-    this.clear();
-    let direction = "";
-    switch (keycode) {
-      case 37:
-        direction = "left";
-        this.x -= 5;
-        break;
-      case 39:
-        direction = "right";
-        this.x += 5;
-        break;
-    }
-    this.draw();
-    this.ctx.fill();
-  }
-
-  jump(keycode, onTop) {
-    const top = charStartY - 80;
-
-    if (this.y <= top) {
-      onTop = true;
-      this.isJump = false;
+  _createClass(Character, [{
+    key: 'draw',
+    value: function draw() {
+      this.ctx.drawImage(this.img, this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
 
-    if (keycode != 32 || onTop || this.isFall) {
-      return;
-    }
-    this.clear();
-    this.y -= 4;
-    this.isJump = true;
-    this.draw();
-    this.ctx.fill();
+    // 自分の周りをクリア（再描写のため)
 
-    setTimeout(() => {
-      this.jump(keycode, onTop);
-    }, 10);
-  }
-
-  fall(keycode, onGround) {
-    const ground = charStartY;
-    if (this.y >= ground) {
-      onGround = true;
-      this.isFall = false;
+  }, {
+    key: 'clear',
+    value: function clear() {
+      this.ctx.clearRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
 
-    if (keycode != 32 || onGround) {
-      return;
+    // Hit時
+
+  }, {
+    key: 'isHit',
+    value: function isHit(target) {
+      if (Math.abs(this.x - target.x) < this.w / 2 + target.w / 2 && Math.abs(this.y - target.y) < this.h / 2 + target.h / 2) {
+        console.log("hit");
+        return true;
+      }
     }
+  }]);
 
-    this.clear();
-    this.y += 4;
-    this.isFall = true;
-    this.draw();
-    this.ctx.fill();
+  return Character;
+}();
 
-    setTimeout(() => {
-      this.fall(keycode, onGround);
-    }, 10);
+var Player = function (_Character) {
+  _inherits(Player, _Character);
+
+  function Player() {
+    _classCallCheck(this, Player);
+
+    return _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).apply(this, arguments));
   }
-}
 
-class Enemy extends Character {
-  move() {
-    this.clear();
-    // var rnd = Math.round(Math.random());
-    // if (rnd == 0) {
-    this.x -= 2;
-    // } else {
-    // this.x += 2;
-    // }
-    this.draw();
-    this.ctx.fill();
+  _createClass(Player, [{
+    key: 'move',
+
+    // キーに合わせて移動
+    value: function move(keycode) {
+      this.clear();
+      switch (keycode) {
+        case 37:
+          this.x -= 5;
+          break;
+        case 39:
+          this.x += 5;
+          break;
+      }
+      this.draw();
+      this.ctx.fill();
+    }
+  }, {
+    key: 'jump',
+    value: function jump(keycode, onTop) {
+      var _this2 = this;
+
+      // ジャンプの最高到達点
+      var top = charStartY - 80;
+
+      if (this.y <= top) {
+        onTop = true;
+      }
+
+      // 最高到達点より前にspaceキーを話せばその時点で落ちる(isFall)
+      if (keycode != 32 || onTop || this.isFall) {
+        return;
+      }
+      this.clear();
+      this.y -= 4;
+      this.draw();
+      this.ctx.fill();
+
+      setTimeout(function () {
+        _this2.jump(keycode, onTop);
+      }, 10);
+    }
+  }, {
+    key: 'fall',
+    value: function fall(keycode, onGround) {
+      var _this3 = this;
+
+      if (this.y >= charStartY) {
+        onGround = true;
+        this.isFall = false;
+      }
+
+      if (keycode != 32 || onGround) {
+        return;
+      }
+
+      this.clear();
+      this.y += 4;
+      this.isFall = true;
+      this.draw();
+      this.ctx.fill();
+
+      setTimeout(function () {
+        _this3.fall(keycode, onGround);
+      }, 10);
+    }
+  }]);
+
+  return Player;
+}(Character);
+
+var Enemy = function (_Character2) {
+  _inherits(Enemy, _Character2);
+
+  function Enemy() {
+    _classCallCheck(this, Enemy);
+
+    return _possibleConstructorReturn(this, (Enemy.__proto__ || Object.getPrototypeOf(Enemy)).apply(this, arguments));
   }
-}
 
-onload = () => {
+  _createClass(Enemy, [{
+    key: 'move',
+    value: function move() {
+      this.clear();
+      // var rnd = Math.round(Math.random());
+      // if (rnd == 0) {
+      this.x -= 2;
+      // } else {
+      // this.x += 2;
+      // }
+      this.draw();
+      this.ctx.fill();
+    }
+  }]);
+
+  return Enemy;
+}(Character);
+
+onload = function onload() {
   init();
 };
 
-var init = () => {
-  const canvas = document.getElementById('game');
-  let ctx;
+var init = function init() {
+  var canvas = document.getElementById('game');
+  var ctx = void 0;
   if (canvas.getContext) {
     ctx = canvas.getContext('2d');
   }
 
   if (canvas.getContext) {
-    // 地面
-    ctx.beginPath();
-    ctx.fillStyle = 'rgb(155, 187, 89)';
-    ctx.rect(0, 300, 700, 200);
-    ctx.closePath();
+    (function () {
+      // 地面
+      ctx.beginPath();
+      ctx.fillStyle = 'rgb(155, 187, 89)';
+      ctx.rect(0, 300, 700, 200);
+      ctx.closePath();
 
-    // Player
-    const img = new Image();
-    img.src = "img/c.jpg";
-    const player = new Player(ctx, img, 50, 300 - charH / 2);
-    player.draw();
+      // Player
+      var img = new Image();
+      img.src = "img/c.jpg";
+      var player = new Player(ctx, img, 50, charStartY);
+      player.draw();
 
-    // Enemy
-    const img2 = new Image();
-    img2.src = "img/b.png";
+      // Enemy
+      var enemies = [];
+      var img2 = new Image();
+      img2.src = "img/b.png";
+      appendNewEnemy(enemies, ctx, img2);
 
-    let enemies = [];
+      ctx.fill();
 
-    appendNewEnemy(enemies, ctx, img2);
+      // 敵が一定間隔ごとに動く
+      setInterval(function () {
+        tick(enemies, player);
+      }, 1000);
 
-    ctx.fill();
+      // キーボード押時
+      document.body.onkeydown = function (e) {
+        player.move(e.keyCode);
+        player.jump(e.keyCode, false);
+        enemies.forEach(function (enemy, index) {
+          player.isHit(enemy);
+        });
+      };
 
-    // 敵が一定間隔ごとに動く
-    setInterval(() => {
-      tick(enemies, player);
-    }, 1000);
-
-    // キーボード押時
-    document.body.onkeydown = e => {
-      player.move(e.keyCode);
-      player.jump(e.keyCode, false);
-      enemies.forEach((enemy, index) => {
-        player.isHit(enemy);
-      });
-    };
-
-    document.body.onkeyup = e => {
-      player.fall(e.keyCode, false);
-    };
+      document.body.onkeyup = function (e) {
+        player.fall(e.keyCode, false);
+      };
+    })();
   }
 };
 
-var appendNewBlock = (blocks, ctx) => {};
+// var appendNewBlock = (blocks, ctx) => {
+// }
 
-var appendNewEnemy = (enemies, ctx, img) => {
+var appendNewEnemy = function appendNewEnemy(enemies, ctx, img) {
   // ステージ1/3以降にランダムに作成
-  const minX = stageW * 1 / 3;
-  const rndX = Math.round(Math.random() * (stageW + 1 - minX)) + minX;
+  var minX = stageW * 1 / 3;
+  var rndX = Math.round(Math.random() * (stageW + 1 - minX)) + minX;
 
-  const enemy = new Enemy(ctx, img, rndX, 300 - charH / 2);
+  var enemy = new Enemy(ctx, img, rndX, charStartY);
   enemies.push(enemy);
   enemy.draw();
 
-  setTimeout(() => {
+  setTimeout(function () {
     appendNewEnemy(enemies, ctx, img);
   }, 1000);
 };
 
-var tick = (enemies, player) => {
-  enemies.forEach((enemy, index) => {
+var tick = function tick(enemies, player) {
+  enemies.forEach(function (enemy, index) {
     enemy.move();
-    const isHit = enemy.isHit(player);
+    var isHit = enemy.isHit(player);
 
     // 衝突したキャラクターを削除
     if (isHit) {
       enemies.splice(index, 1);
       enemy.clear(); // 跡が残るので消す
+      player.draw();
     }
   });
 };
