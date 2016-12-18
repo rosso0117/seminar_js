@@ -15,6 +15,7 @@ class Character {
     this.w = charW;
     this.h = charH;
     this.isFall = false;
+    this.bullets = [];
   }
 
   // キャラ描写
@@ -92,6 +93,17 @@ class Player extends Character {
 
     setTimeout( () => { this.fall(keycode, onGround) }, 10 );
   }
+
+  shot(keycode) {
+    if (keycode != 32) {
+      return;
+    }
+
+    const bullet = new Bullet(this.ctx, this.x, this.y);
+    bullet.draw();
+    this.bullets.push(bullet);
+    this.ctx.fill();
+  }
 }
 
 class Enemy extends Character {
@@ -105,6 +117,44 @@ class Enemy extends Character {
     // }
     this.draw();
     this.ctx.fill();
+  }
+}
+
+class Bullet {
+  constructor(ctx, x, y, index) {
+    this.ctx = ctx;
+    this.x   = x;
+    this.y   = y;
+    this.w   = 5;
+    this.h   = 5;
+    this.index = index;
+  }
+
+  draw() {
+    this.ctx.rect(this.x, this.y, this.w, this.h);
+  }
+
+  clear() {
+    this.ctx.clearRect(this.x, this.y, this.w, this.h);
+  }
+
+  move() {
+    this.clear();
+    this.x += 20;
+    this.draw();
+    this.ctx.fill();
+  }
+
+  isHit(enemies, player) {
+    enemies.forEach( (enemy, index) => {
+      if ( this.x > enemy.x ) {
+        enemies.splice(index, 1);
+        enemy.clear(); // 跡が残るので消す
+        this.clear();
+        player.bullets.splice(index, 1);
+        this.ctx.fill();
+      }
+    });
   }
 }
 
@@ -147,6 +197,7 @@ var init = () => {
     document.body.onkeydown = (e) => {
       player.move(e.keyCode);
       player.jump(e.keyCode, false);
+      player.shot(e.keyCode);
       enemies.forEach( (enemy, index) => {
         player.isHit(enemy);
       } );
@@ -184,5 +235,11 @@ var tick = (enemies, player) => {
       enemy.clear(); // 跡が残るので消す
       player.draw();
     }
+  } );
+
+  // 弾
+  player.bullets.forEach( (bullet, index) => {
+    bullet.move();
+    bullet.isHit(enemies);
   } );
 }
