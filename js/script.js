@@ -138,7 +138,7 @@ var Player = function (_Character) {
   }, {
     key: 'shot',
     value: function shot(keycode) {
-      if (keycode != 32) {
+      if (keycode != 83) {
         return;
       }
 
@@ -180,7 +180,7 @@ var Enemy = function (_Character2) {
 }(Character);
 
 var Bullet = function () {
-  function Bullet(ctx, x, y) {
+  function Bullet(ctx, x, y, index) {
     _classCallCheck(this, Bullet);
 
     this.ctx = ctx;
@@ -188,6 +188,7 @@ var Bullet = function () {
     this.y = y;
     this.w = 5;
     this.h = 5;
+    this.index = index;
   }
 
   _createClass(Bullet, [{
@@ -204,13 +205,13 @@ var Bullet = function () {
     key: 'move',
     value: function move() {
       this.clear();
-      this.x += 20;
+      this.x += 60;
       this.draw();
       this.ctx.fill();
     }
   }, {
     key: 'isHit',
-    value: function isHit(enemies) {
+    value: function isHit(enemies, player) {
       var _this5 = this;
 
       enemies.forEach(function (enemy, index) {
@@ -218,6 +219,7 @@ var Bullet = function () {
           enemies.splice(index, 1);
           enemy.clear(); // 跡が残るので消す
           _this5.clear();
+          player.bullets.splice(index, 1);
           _this5.ctx.fill();
         }
       });

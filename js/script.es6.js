@@ -95,7 +95,7 @@ class Player extends Character {
   }
 
   shot(keycode) {
-    if (keycode != 32) {
+    if (keycode != 83) {
       return;
     }
 
@@ -140,7 +140,7 @@ class Bullet {
 
   move() {
     this.clear();
-    this.x += 20;
+    this.x += 60;
     this.draw();
     this.ctx.fill();
   }
