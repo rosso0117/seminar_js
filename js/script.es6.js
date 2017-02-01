@@ -102,6 +102,7 @@ class Player extends Character {
     const bullet = new Bullet(this.ctx, this.x + this.w / 2, this.y);
     bullet.draw();
     this.bullets.push(bullet);
+    document.getElementById( 'shoot' ).play();
     this.ctx.fill();
   }
 }
@@ -110,7 +111,7 @@ class Enemy extends Character {
   constructor(ctx, img, x, y) {
     super(ctx, img, x, y);
     this.moved = 0;
-    this.movelimit = 20;
+    this.movelimit = 100;
     this.direction = "left";
   }
   move() {
@@ -154,6 +155,8 @@ class Bullet {
     this.w   = 8;
     this.h   = 8;
     this.index = index;
+    this.moved = 0;
+    this.movelimit = 100;
   }
 
   draw() {
@@ -164,9 +167,17 @@ class Bullet {
     this.ctx.clearRect(this.x - this.w/2, this.y - this.h/2, this.w, this.h);
   }
 
-  move() {
+  move(bullets) {
+    console.log(this.moved);
+    if (this.movelimit <= this.moved) {
+      this.clear;
+      bullets.splice(this.index, 1);
+      this.ctx.fill();
+      return;
+    }
     this.clear();
     this.x += 10;
+    this.moved += 10;
     this.draw();
     this.ctx.fill();
   }
@@ -179,8 +190,9 @@ class Bullet {
         enemies.splice(index, 1);
         enemy.clear(); // 跡が残るので消す
         this.clear();
-        player.bullets.splice(index, 1);
+        player.bullets.splice(this.index, 1);
         this.ctx.fill();
+        document.getElementById( 'bomb' ).play();
       }
     });
   }
@@ -242,7 +254,7 @@ var init = () => {
 
 var appendNewEnemy = (enemies, ctx, img) => {
   // ステージ1/3以降にランダムに作成
-  const minX = stageW * 1/3
+  const minX = stageW * 1/6
   const rndX = Math.round( Math.random() * (stageW + 1 - minX) ) + minX;
 
   const enemy = new Enemy(ctx, img, rndX, charStartY);
@@ -262,12 +274,19 @@ var tick = (enemies, player) => {
       enemies.splice(index, 1);
       enemy.clear(); // 跡が残るので消す
       player.draw();
+      console.log("GAME OVER");
     }
   } );
 
   // 弾
   player.bullets.forEach( (bullet, index) => {
-    bullet.move();
-    bullet.isHit(enemies, player);
+    if (bullet.movelimit <= bullet.moved) {
+      bullet.clear();
+      player.bullets.splice(bullet.index, 1);
+      bullet.ctx.fill();
+    } else {
+      bullet.move(player.bullets);
+      bullet.isHit(enemies, player);
+    }
   } );
 }

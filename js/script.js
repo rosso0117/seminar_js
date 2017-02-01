@@ -32,7 +32,7 @@ var Character = function () {
 
 
   _createClass(Character, [{
-    key: "draw",
+    key: 'draw',
     value: function draw() {
       this.ctx.drawImage(this.img, this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
@@ -40,7 +40,7 @@ var Character = function () {
     // 自分の周りをクリア（再描写のため)
 
   }, {
-    key: "clear",
+    key: 'clear',
     value: function clear() {
       this.ctx.clearRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
@@ -48,7 +48,7 @@ var Character = function () {
     // Hit時
 
   }, {
-    key: "isHit",
+    key: 'isHit',
     value: function isHit(target) {
       if (Math.abs(this.x - target.x) < this.w / 2 + target.w / 2 && Math.abs(this.y - target.y) < this.h / 2 + target.h / 2) {
         console.log("hit");
@@ -70,7 +70,7 @@ var Player = function (_Character) {
   }
 
   _createClass(Player, [{
-    key: "move",
+    key: 'move',
 
     // キーに合わせて移動
     value: function move(keycode) {
@@ -87,7 +87,7 @@ var Player = function (_Character) {
       this.ctx.fill();
     }
   }, {
-    key: "jump",
+    key: 'jump',
     value: function jump(keycode, onTop) {
       var _this2 = this;
 
@@ -112,7 +112,7 @@ var Player = function (_Character) {
       }, 10);
     }
   }, {
-    key: "fall",
+    key: 'fall',
     value: function fall(keycode, onGround) {
       var _this3 = this;
 
@@ -136,7 +136,7 @@ var Player = function (_Character) {
       }, 10);
     }
   }, {
-    key: "shot",
+    key: 'shot',
     value: function shot(keycode) {
       if (keycode != 83) {
         return;
@@ -145,6 +145,7 @@ var Player = function (_Character) {
       var bullet = new Bullet(this.ctx, this.x + this.w / 2, this.y);
       bullet.draw();
       this.bullets.push(bullet);
+      document.getElementById('shoot').play();
       this.ctx.fill();
     }
   }]);
@@ -161,13 +162,13 @@ var Enemy = function (_Character2) {
     var _this4 = _possibleConstructorReturn(this, (Enemy.__proto__ || Object.getPrototypeOf(Enemy)).call(this, ctx, img, x, y));
 
     _this4.moved = 0;
-    _this4.movelimit = 20;
+    _this4.movelimit = 100;
     _this4.direction = "left";
     return _this4;
   }
 
   _createClass(Enemy, [{
-    key: "move",
+    key: 'move',
     value: function move() {
       this.clear();
 
@@ -214,28 +215,38 @@ var Bullet = function () {
     this.w = 8;
     this.h = 8;
     this.index = index;
+    this.moved = 0;
+    this.movelimit = 100;
   }
 
   _createClass(Bullet, [{
-    key: "draw",
+    key: 'draw',
     value: function draw() {
       this.ctx.fillRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
   }, {
-    key: "clear",
+    key: 'clear',
     value: function clear() {
       this.ctx.clearRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
   }, {
-    key: "move",
-    value: function move() {
+    key: 'move',
+    value: function move(bullets) {
+      console.log(this.moved);
+      if (this.movelimit <= this.moved) {
+        this.clear;
+        bullets.splice(this.index, 1);
+        this.ctx.fill();
+        return;
+      }
       this.clear();
       this.x += 10;
+      this.moved += 10;
       this.draw();
       this.ctx.fill();
     }
   }, {
-    key: "isHit",
+    key: 'isHit',
     value: function isHit(enemies, player) {
       var _this5 = this;
 
@@ -244,8 +255,9 @@ var Bullet = function () {
           enemies.splice(index, 1);
           enemy.clear(); // 跡が残るので消す
           _this5.clear();
-          player.bullets.splice(index, 1);
+          player.bullets.splice(_this5.index, 1);
           _this5.ctx.fill();
+          document.getElementById('bomb').play();
         }
       });
     }
@@ -314,7 +326,7 @@ var init = function init() {
 
 var appendNewEnemy = function appendNewEnemy(enemies, ctx, img) {
   // ステージ1/3以降にランダムに作成
-  var minX = stageW * 1 / 3;
+  var minX = stageW * 1 / 6;
   var rndX = Math.round(Math.random() * (stageW + 1 - minX)) + minX;
 
   var enemy = new Enemy(ctx, img, rndX, charStartY);
@@ -336,12 +348,19 @@ var tick = function tick(enemies, player) {
       enemies.splice(index, 1);
       enemy.clear(); // 跡が残るので消す
       player.draw();
+      console.log("GAME OVER");
     }
   });
 
   // 弾
   player.bullets.forEach(function (bullet, index) {
-    bullet.move();
-    bullet.isHit(enemies, player);
+    if (bullet.movelimit <= bullet.moved) {
+      bullet.clear();
+      player.bullets.splice(bullet.index, 1);
+      bullet.ctx.fill();
+    } else {
+      bullet.move(player.bullets);
+      bullet.isHit(enemies, player);
+    }
   });
 };
