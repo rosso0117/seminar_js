@@ -24,7 +24,7 @@ var Character = function () {
     this.y = y;
     this.w = charW;
     this.h = charH;
-    this.isFall = false;
+    this.jumpFlag = false;
     this.bullets = [];
   }
 
@@ -32,7 +32,7 @@ var Character = function () {
 
 
   _createClass(Character, [{
-    key: 'draw',
+    key: "draw",
     value: function draw() {
       this.ctx.drawImage(this.img, this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
@@ -40,7 +40,7 @@ var Character = function () {
     // 自分の周りをクリア（再描写のため)
 
   }, {
-    key: 'clear',
+    key: "clear",
     value: function clear() {
       this.ctx.clearRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
@@ -48,7 +48,7 @@ var Character = function () {
     // Hit時
 
   }, {
-    key: 'isHit',
+    key: "isHit",
     value: function isHit(target) {
       if (Math.abs(this.x - target.x) < this.w / 2 + target.w / 2 && Math.abs(this.y - target.y) < this.h / 2 + target.h / 2) {
         console.log("hit");
@@ -70,7 +70,7 @@ var Player = function (_Character) {
   }
 
   _createClass(Player, [{
-    key: 'move',
+    key: "move",
 
     // キーに合わせて移動
     value: function move(keycode) {
@@ -87,7 +87,7 @@ var Player = function (_Character) {
       this.ctx.fill();
     }
   }, {
-    key: 'jump',
+    key: "jump",
     value: function jump(keycode, onTop) {
       var _this2 = this;
 
@@ -112,7 +112,7 @@ var Player = function (_Character) {
       }, 10);
     }
   }, {
-    key: 'fall',
+    key: "fall",
     value: function fall(keycode, onGround) {
       var _this3 = this;
 
@@ -136,13 +136,13 @@ var Player = function (_Character) {
       }, 10);
     }
   }, {
-    key: 'shot',
+    key: "shot",
     value: function shot(keycode) {
       if (keycode != 83) {
         return;
       }
 
-      var bullet = new Bullet(this.ctx, this.x, this.y);
+      var bullet = new Bullet(this.ctx, this.x + this.w / 2, this.y);
       bullet.draw();
       this.bullets.push(bullet);
       this.ctx.fill();
@@ -155,22 +155,47 @@ var Player = function (_Character) {
 var Enemy = function (_Character2) {
   _inherits(Enemy, _Character2);
 
-  function Enemy() {
+  function Enemy(ctx, img, x, y) {
     _classCallCheck(this, Enemy);
 
-    return _possibleConstructorReturn(this, (Enemy.__proto__ || Object.getPrototypeOf(Enemy)).apply(this, arguments));
+    var _this4 = _possibleConstructorReturn(this, (Enemy.__proto__ || Object.getPrototypeOf(Enemy)).call(this, ctx, img, x, y));
+
+    _this4.moved = 0;
+    _this4.movelimit = 20;
+    _this4.direction = "left";
+    return _this4;
   }
 
   _createClass(Enemy, [{
-    key: 'move',
+    key: "move",
     value: function move() {
       this.clear();
-      // var rnd = Math.round(Math.random());
-      // if (rnd == 0) {
-      this.x -= 2;
-      // } else {
-      // this.x += 2;
-      // }
+
+      if (this.moved == 0 || this.movelimit <= this.moved) {
+        var rnd = Math.round(Math.random());
+        if (rnd == 0) {
+          this.direction = "left";
+        } else {
+          this.direction = "right";
+        }
+        this.moved = 0;
+      }
+
+      if (this.direction == "right") {
+        this.x += 2;
+      } else {
+        this.x -= 2;
+      }
+
+      if (stageW <= this.x) {
+        this.direction = "left";
+      }
+
+      if (this.x <= 0) {
+        this.direction = "right";
+      }
+
+      this.moved += 2;
       this.draw();
       this.ctx.fill();
     }
@@ -186,36 +211,36 @@ var Bullet = function () {
     this.ctx = ctx;
     this.x = x;
     this.y = y;
-    this.w = 5;
-    this.h = 5;
+    this.w = 8;
+    this.h = 8;
     this.index = index;
   }
 
   _createClass(Bullet, [{
-    key: 'draw',
+    key: "draw",
     value: function draw() {
-      this.ctx.rect(this.x, this.y, this.w, this.h);
+      this.ctx.fillRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
   }, {
-    key: 'clear',
+    key: "clear",
     value: function clear() {
-      this.ctx.clearRect(this.x, this.y, this.w, this.h);
+      this.ctx.clearRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
   }, {
-    key: 'move',
+    key: "move",
     value: function move() {
       this.clear();
-      this.x += 60;
+      this.x += 10;
       this.draw();
       this.ctx.fill();
     }
   }, {
-    key: 'isHit',
+    key: "isHit",
     value: function isHit(enemies, player) {
       var _this5 = this;
 
       enemies.forEach(function (enemy, index) {
-        if (_this5.x > enemy.x) {
+        if (Math.abs(_this5.x - enemy.x) < _this5.w / 2 + enemy.w / 2 && Math.abs(_this5.y - enemy.y) < _this5.h / 2 + enemy.h / 2) {
           enemies.splice(index, 1);
           enemy.clear(); // 跡が残るので消す
           _this5.clear();
@@ -244,7 +269,7 @@ var init = function init() {
     (function () {
       // 地面
       ctx.beginPath();
-      ctx.fillStyle = 'rgb(155, 187, 89)';
+      ctx.fillStyle = 'rgb(0, 102, 204)';
       ctx.rect(0, 300, 700, 200);
       ctx.closePath();
 
@@ -265,7 +290,7 @@ var init = function init() {
       // 敵が一定間隔ごとに動く
       setInterval(function () {
         tick(enemies, player);
-      }, 1000);
+      }, 100);
 
       // キーボード押時
       document.body.onkeydown = function (e) {
@@ -298,7 +323,7 @@ var appendNewEnemy = function appendNewEnemy(enemies, ctx, img) {
 
   setTimeout(function () {
     appendNewEnemy(enemies, ctx, img);
-  }, 1000);
+  }, 5000);
 };
 
 var tick = function tick(enemies, player) {
@@ -317,6 +342,6 @@ var tick = function tick(enemies, player) {
   // 弾
   player.bullets.forEach(function (bullet, index) {
     bullet.move();
-    bullet.isHit(enemies);
+    bullet.isHit(enemies, player);
   });
 };

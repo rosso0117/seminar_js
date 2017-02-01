@@ -14,7 +14,7 @@ class Character {
     this.y = y;
     this.w = charW;
     this.h = charH;
-    this.isFall = false;
+    this.jumpFlag = false;
     this.bullets = [];
   }
 
@@ -99,7 +99,7 @@ class Player extends Character {
       return;
     }
 
-    const bullet = new Bullet(this.ctx, this.x, this.y);
+    const bullet = new Bullet(this.ctx, this.x + this.w / 2, this.y);
     bullet.draw();
     this.bullets.push(bullet);
     this.ctx.fill();
@@ -107,14 +107,40 @@ class Player extends Character {
 }
 
 class Enemy extends Character {
+  constructor(ctx, img, x, y) {
+    super(ctx, img, x, y);
+    this.moved = 0;
+    this.movelimit = 20;
+    this.direction = "left";
+  }
   move() {
     this.clear();
-    // var rnd = Math.round(Math.random());
-    // if (rnd == 0) {
+
+    if (this.moved == 0 || this.movelimit <= this.moved) {
+      var rnd = Math.round(Math.random());
+      if (rnd == 0) {
+        this.direction = "left";
+      } else {
+        this.direction = "right";
+      }
+      this.moved = 0;
+    }
+
+    if (this.direction == "right") {
+      this.x += 2;
+    } else {
       this.x -= 2;
-    // } else {
-      // this.x += 2;
-    // }
+    }
+
+    if (stageW <= this.x) {
+      this.direction = "left";
+    }
+
+    if (this.x <= 0) {
+      this.direction = "right";
+    }
+
+    this.moved += 2;
     this.draw();
     this.ctx.fill();
   }
@@ -125,29 +151,31 @@ class Bullet {
     this.ctx = ctx;
     this.x   = x;
     this.y   = y;
-    this.w   = 5;
-    this.h   = 5;
+    this.w   = 8;
+    this.h   = 8;
     this.index = index;
   }
 
   draw() {
-    this.ctx.rect(this.x, this.y, this.w, this.h);
+    this.ctx.fillRect(this.x - this.w/2, this.y - this.h/2, this.w, this.h);
   }
 
   clear() {
-    this.ctx.clearRect(this.x, this.y, this.w, this.h);
+    this.ctx.clearRect(this.x - this.w/2, this.y - this.h/2, this.w, this.h);
   }
 
   move() {
     this.clear();
-    this.x += 60;
+    this.x += 10;
     this.draw();
     this.ctx.fill();
   }
 
   isHit(enemies, player) {
     enemies.forEach( (enemy, index) => {
-      if ( this.x > enemy.x ) {
+      if ( Math.abs(this.x - enemy.x) < this.w/2 + enemy.w/2
+      && Math.abs(this.y - enemy.y) < this.h/2 + enemy.h/2 )
+      {
         enemies.splice(index, 1);
         enemy.clear(); // 跡が残るので消す
         this.clear();
@@ -172,7 +200,7 @@ var init = () => {
   if (canvas.getContext) {
     // 地面
     ctx.beginPath();
-    ctx.fillStyle = 'rgb(155, 187, 89)';
+    ctx.fillStyle = 'rgb(0, 102, 204)';
     ctx.rect(0, 300, 700, 200);
     ctx.closePath();
 
@@ -191,7 +219,7 @@ var init = () => {
     ctx.fill();
 
     // 敵が一定間隔ごとに動く
-    setInterval( () => { tick(enemies, player) }, 1000 );
+    setInterval( () => { tick(enemies, player) }, 100 );
 
     // キーボード押時
     document.body.onkeydown = (e) => {
@@ -221,7 +249,7 @@ var appendNewEnemy = (enemies, ctx, img) => {
   enemies.push(enemy);
   enemy.draw();
 
-  setTimeout( () => { appendNewEnemy(enemies, ctx, img) }, 1000 );
+  setTimeout( () => { appendNewEnemy(enemies, ctx, img) }, 5000 );
 }
 
 var tick = (enemies, player) => {
@@ -240,6 +268,6 @@ var tick = (enemies, player) => {
   // 弾
   player.bullets.forEach( (bullet, index) => {
     bullet.move();
-    bullet.isHit(enemies);
+    bullet.isHit(enemies, player);
   } );
 }
