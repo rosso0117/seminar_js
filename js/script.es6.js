@@ -5,6 +5,8 @@ const stageH = 500;
 const charW = 50;
 const charH = 50;
 const charStartY = 300 - charH / 2;
+var moveTick = "";
+var score = 0;
 
 class Character {
   constructor(ctx, img, x, y) {
@@ -193,6 +195,8 @@ class Bullet {
         player.bullets.splice(this.index, 1);
         this.ctx.fill();
         document.getElementById( 'bomb' ).play();
+        score += 1;
+        document.getElementById( 'score' ).innerHTML = score;
       }
     });
   }
@@ -231,7 +235,7 @@ var init = () => {
     ctx.fill();
 
     // 敵が一定間隔ごとに動く
-    setInterval( () => { tick(enemies, player) }, 100 );
+    moveTick = setInterval( () => { tick(enemies, player) }, 100 );
 
     // キーボード押時
     document.body.onkeydown = (e) => {
@@ -247,6 +251,19 @@ var init = () => {
       player.fall(e.keyCode, false);
     }
   }
+}
+
+var gameOver = (ctx, moveTick) => {
+  console.log("GAME OVER");
+  score = 0;
+  document.getElementById( 'score' ).innerHTML = 0;
+  clearInterval(moveTick);
+  for (var i = 1; i < 1000; i++) {
+    clearTimeout(i);
+  }
+  ctx.clearRect(0, 0, stageW, stageH);
+  ctx.fill();
+  init();
 }
 
 // var appendNewBlock = (blocks, ctx) => {
@@ -271,10 +288,10 @@ var tick = (enemies, player) => {
 
     // 衝突したキャラクターを削除
     if (isHit) {
-      enemies.splice(index, 1);
-      enemy.clear(); // 跡が残るので消す
-      player.draw();
-      console.log("GAME OVER");
+      gameOver(player.ctx, moveTick);
+      // enemies.splice(index, 1);
+      // enemy.clear(); // 跡が残るので消す
+      // player.draw();
     }
   } );
 
